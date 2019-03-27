@@ -64,8 +64,8 @@ case $opcion in
 	while read linea; do i=$((i++))  echo -e "$i) $linea\n" ; done < $HOME/.bash_history;;
 
 2) bash gestionprocesos.sh;;
-3) bash gestionbackup.sh;;
-4) echo "Digite la carpeta que desea verificar";read v ;bash listarfile.sh $v ;;
+3) bash gestionbackups.sh;;
+4) echo "${white}"; ls -l  $HOME;echo "${red}Digite la carpeta que desea verificar"; read v ; echo "${green}${BLACK}";bash listarfile.sh $v ;;
 5) bash gestionarlinkduros.sh;;
 6) exit 1;;
 *) echo "$opc no es una opcion válida.";

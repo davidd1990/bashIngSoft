@@ -19,7 +19,6 @@ exit 1;;
 *) echo "$opc no es una opcion válida.";
 echo "Presiona una tecla para continuar...";
 read foo;;
-echo ""
 esac
 done
 
