@@ -47,6 +47,9 @@ totalfile=0
 A=`find $HOME/$1 -type f `
 for a in $A
 	do
+	B=" "
+	C="\ "
+	a="${a/$B/$C}"
 	let totalfile=totalfile+1	
 	tipo=`file -i $a| grep -v 'inode/directory'| awk '{ print $2 }' `	
 	echo $tipo >> tipos		
@@ -75,7 +78,7 @@ do
         y=${m/;/}
 	x=`awk '{s+=$1} END {print s}' $y`
 	z=`wc -l $y`
-	echo $x bytes en un total de $z archivos de tipo $arch >> ultimo
+	echo $x | awk '{ foo = $1 / 1024 / 1024 ; print foo "MB" }' "en un total de $z archivos de tipo $arch" >> ultimo
 done
 pesototal=`awk '{s+=$1} END {print s}' ultimo`
 echo peso total = $pesototal >> ultimo
