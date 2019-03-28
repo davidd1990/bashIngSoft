@@ -40,49 +40,53 @@ LIGHTPURPLE=`echo -en "\e[105m"`
 LIGHTAQUA=`echo -en "\e[106m"`
 WHITE=`echo -en "\e[107m"`
 DEFAULT=`echo -en "\e[49m"`;
+columns=$(tput cols)
+
 
 echo -n "Procesando"
 while true; do echo -n ".";sleep 1 ; done & trap 'kill $!' SIGTERM SIGKILL
 totalfile=0
-A=`find $HOME/$1 -type f `
-for a in $A
-	do
-	B=" "
-	C="\ "
-	a="${a/$B/$C}"
-	let totalfile=totalfile+1	
-	tipo=`file -i $a| grep -v 'inode/directory'| awk '{ print $2 }' `	
-	echo $tipo >> tipos		
-done
+A=`find $HOME/$1 -type f | while read dir; do echo $dir >> archivofind; done`
 
+while read a;
+do 
+        let totalfile=totalfile+1
+        tipo=`file -i "$a"| grep -v 'inode/directory'| awk '{ print $2 }' `       
+        echo $tipo >> tipos
+done < archivofind
 tiposdatos=`awk '!a[$0]++' tipos `
-for a in $A
-	do
-	peso=`ls -l $a | awk '{print $5}' `
-	tipo=`file -i $a| grep -v 'inode/directory'| awk '{print $2}'`
-	for item in $tiposdatos
-	do
-		if [ $item = $tipo ]
-		then
-			m=${item/\//}
-			y=${m/;/}
-			echo $peso >> $y		
-		fi
-	done		 
-done
+while read b;
+do
+       
+        peso=`du  "$b" | awk '{print $1}' `
+        tipo=`file -i "$b"| grep -v 'inode/directory'| awk '{print $2}'`
+        for item in $tiposdatos
+        do
+                if [ $item = $tipo ]
+                then
+                        m=${item/\//}
+                        y=${m/;/}
+                        echo $peso >> $y
+                fi
+        done
+done < archivofind
+
 echo ""
-echo "${DEFAULT}${orange}Resultado de la operacion${blue}"
+echo "${DEFAULT}${orange}Resultado de la operacion${white}"
 for arch in $tiposdatos
 do
         m=${arch/\//}
         y=${m/;/}
 	x=`awk '{s+=$1} END {print s}' $y`
 	z=`wc -l $y`
-	echo "$x en un total de $z archivos de tipo $arch" >> ultimo
+	linea=`printf "%*s\n | $z" $(((${#x}+10))) "$x"`
+
+	echo $linea >> ultimo
 done
 pesototal=`awk '{s+=$1} END {print s}' ultimo`
-echo peso total = $pesototal >> ultimo
-echo numero de archivos = $totalfile >> ultimo
+pesohumano=`numfmt --to=iec-i --suffix=B --format="%.3f" $pesototal`
+echo ${blue}peso total = ${white} $pesohumano >> ultimo
+echo ${blue}numero de archivos = ${white}$totalfile >> ultimo
 for arch in $tiposdatos
 do 
 	m=${arch/\//}
@@ -90,7 +94,10 @@ do
 	rm $y
 
 done
-sort -nr ultimo
+Z=`sort -nr ultimo`
+sed -i "1i ${blue}Peso \t | Cantidad y tipo Archivo\nBytes\t |${green}" ultimo
+cat ultimo
+rm archivofind
 rm ultimo
 rm tipos
 kill $!
